@@ -28,7 +28,7 @@ static bool amcheck_index_mainfork_expected(Relation rel);
 /*
  * Check if index relation should have a file for its main relation fork.
  * Verification uses this to skip unlogged indexes when in hot standby mode,
- * where there is simply nothing to verify.
+ * where there is simply nothing to verify .
  *
  * NB: Caller should call index_checkable() before calling here.
  */
