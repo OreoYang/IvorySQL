@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License at.
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -34,9 +34,9 @@ int			identifier_case_switch = INTERCHANGE;
 bool		identifier_case_from_pg_dump = false;
 bool		enable_case_switch = true;
 
-static char	   *nls_territory = "AMERICA";
-static char	   *nls_currency = "$";
-static char	   *nls_iso_currency = "AMERICA";
+static char *nls_territory = "AMERICA";
+static char *nls_currency = "$";
+static char *nls_iso_currency = "AMERICA";
 
 bool		enable_emptystring_to_NULL = false;
 
@@ -56,7 +56,7 @@ int			rowid_seq_cache = 20;
 
 #ifdef IVY_GUC_VAR_STRUCT
 
-/* The comments shown as blow define the
+/* The comments shown as below define the
  * value range of guc parameters "database_mode"
  * and "compatible_db".
  */
@@ -72,9 +72,7 @@ static const struct config_enum_entry db_parser_options[] = {
 	{"pg", PG_PARSER, false},
 	{"oracle", ORA_PARSER, false},
 	{NULL, 0, false}
-
 };
-
 
 static const struct config_enum_entry case_conversion_mode[] = {
 	{"normal", NORMAL, false},
@@ -184,15 +182,14 @@ static struct config_bool Ivy_ConfigureNamesBool[] =
 	},
 
 	/*
- 	 * ivorysql.default_with_rowids
+	 * ivorysql.default_with_rowids
 	 *
-	 * When enabled, all newly created tables will automatically include
-	 * an Oracle-compatible ROWID pseudo-column. This provides compatibility
-	 * with Oracle applications that rely on ROWID for row identification.
+	 * When enabled, all newly created tables will automatically include an
+	 * Oracle-compatible ROWID pseudo-column. This provides compatibility with
+	 * Oracle applications that rely on ROWID for row identification.
 	 *
-	 * Default: off
-	 * Context: USERSET (can be changed by any user)
- 	 */
+	 * Default: off Context: USERSET (can be changed by any user)
+	 */
 	{
 		{"ivorysql.default_with_rowids", PGC_USERSET, DEVELOPER_OPTIONS,
 			gettext_noop("Automatically add rowid column when creating new tables."),
@@ -477,7 +474,7 @@ check_compatible_mode(int *newval, void **extra, GucSource source)
 				ereport(ERROR,
 						(errcode(ERRCODE_SYSTEM_ERROR),
 						 errmsg("IVORYSQL_ORA library not found!"),
-						 errhint("You must load IVORYSQL_ORA to use oracle parser..")));
+						 errhint("You must load IVORYSQL_ORA to use oracle parser.")));
 		}
 	}
 	return true;
@@ -536,14 +533,14 @@ CASE_CONVERSION:
 		for (p = *param; p < *param + strlen(*param); ++p)
 			if (97 <= *p && *p <= 122)
 				*p -= 32;
-		*p = '\0';
+		*(*param + strlen(*param)) = '\0';
 	}
 	else if (type == 'l')
 	{
 		for (p = *param; p < *param + strlen(*param); ++p)
 			if (65 <= *p && *p <= 90)
 				*p += 32;
-		*p = '\0';
+		*(*param + strlen(*param)) = '\0';
 	}
 	else if (type == 'b')
 	{
