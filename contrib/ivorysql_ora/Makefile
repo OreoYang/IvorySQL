@@ -25,6 +25,7 @@ OBJS = \
 	src/builtin_functions/datetime_datatype_functions.o \
 	src/builtin_functions/numeric_datatype_functions.o \
 	src/builtin_functions/misc_functions.o \
+	src/builtin_functions/ora_aggregate_functions.o \
 	src/builtin_packages/dbms_output/dbms_output.o \
 	src/builtin_packages/utl_file/utl_file.o \
 	src/merge/ora_merge.o \

@@ -763,7 +763,7 @@ static void determineLanguage(List *options);
 	KEEP KEY KEYS
 
 	LABEL LANGUAGE LARGE_P LAST_P LATERAL_P
-	LEADING LEAKPROOF LEAST LEFT LEVEL LIKE LIMIT LISTEN LOAD LOCAL
+	LEADING LEAKPROOF LEAST LEFT LEVEL LIKE LIMIT LISTAGG LISTEN LOAD LOCAL
 	LOCALTIME LOCALTIMESTAMP LOCATION LOCK_P LOCKED LOGGED
 
 	MAPPING MATCH MATCHED MATERIALIZED MAXVALUE MERGE MERGE_ACTION METHOD
@@ -17861,6 +17861,69 @@ func_expr: func_application within_group_clause filter_clause over_clause
 					n->over = $3;
 					$$ = (Node *) $1;
 				}
+			/*
+			 * Oracle-compatible LISTAGG aggregate function.
+			 * Syntax: LISTAGG(measure_expr [, 'delimiter'])
+			 *           WITHIN GROUP (ORDER BY sort_expr [, ...])
+			 *
+			 * Transformed to: sys.listagg_check(string_agg(measure, delimiter
+			 *                                               ORDER BY sort_exprs))
+			 * The listagg_check wrapper enforces Oracle's 4000-byte VARCHAR2 limit.
+			 */
+			| LISTAGG '(' a_expr ',' a_expr ')' within_group_clause filter_clause over_clause
+				{
+					FuncCall *string_agg_n;
+					FuncCall *check_n;
+
+					if ($7 == NIL)
+						ereport(ERROR,
+								(errcode(ERRCODE_SYNTAX_ERROR),
+								 errmsg("LISTAGG requires WITHIN GROUP (ORDER BY ...)"),
+								 parser_errposition(@1)));
+
+					/* Build string_agg(measure, delimiter ORDER BY sort_list) */
+					string_agg_n = makeFuncCall(SystemFuncName("string_agg"),
+													list_make2($3, $5),
+													COERCE_EXPLICIT_CALL, @1);
+					string_agg_n->agg_order = $7;
+					string_agg_n->agg_filter = $8;
+					string_agg_n->over = $9;
+
+					/* Wrap with sys.listagg_check to enforce the 4000-byte limit */
+					check_n = makeFuncCall(OracleSystemFuncName("listagg_check"),
+											 list_make1((Node *) string_agg_n),
+											 COERCE_EXPLICIT_CALL, @1);
+					$$ = (Node *) check_n;
+				}
+			| LISTAGG '(' a_expr ')' within_group_clause filter_clause over_clause
+				{
+					FuncCall *string_agg_n;
+					FuncCall *check_n;
+					Node	 *empty_delim;
+
+					if ($5 == NIL)
+						ereport(ERROR,
+								(errcode(ERRCODE_SYNTAX_ERROR),
+								 errmsg("LISTAGG requires WITHIN GROUP (ORDER BY ...)"),
+								 parser_errposition(@1)));
+
+					/* No delimiter: use empty string */
+					empty_delim = makeStringConst("", @1);
+
+					/* Build string_agg(measure, '' ORDER BY sort_list) */
+					string_agg_n = makeFuncCall(SystemFuncName("string_agg"),
+													list_make2($3, empty_delim),
+													COERCE_EXPLICIT_CALL, @1);
+					string_agg_n->agg_order = $5;
+					string_agg_n->agg_filter = $6;
+					string_agg_n->over = $7;
+
+					/* Wrap with sys.listagg_check to enforce the 4000-byte limit */
+					check_n = makeFuncCall(OracleSystemFuncName("listagg_check"),
+											 list_make1((Node *) string_agg_n),
+											 COERCE_EXPLICIT_CALL, @1);
+					$$ = (Node *) check_n;
+				}
 			| func_expr_common_subexpr
 				{ $$ = $1; }
 		;
@@ -20531,6 +20594,7 @@ col_name_keyword:
 			| JSON_TABLE
 			| JSON_VALUE
 			| LEAST
+			| LISTAGG
 			| MERGE_ACTION
 			| NATIONAL
 			| NCHAR
@@ -20954,6 +21018,7 @@ bare_label_keyword:
 			| LEFT
 			| LEVEL
 			| LIKE
+			| LISTAGG
 			| LISTEN
 			| LOAD
 			| LOCAL

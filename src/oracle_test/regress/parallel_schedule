@@ -172,3 +172,9 @@ test: rownum
 # ----------
 
 test: ora_identifiers
+
+# ----------
+# Oracle LISTAGG aggregate function
+# ----------
+
+test: ora_listagg
